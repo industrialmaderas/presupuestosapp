@@ -1,0 +1,4 @@
+{
+"name":"Presupuestos Industrial Maderas","short_name":"Presupuestos","description":"Calculadora de presupuestos de Industrial Maderas.","lang":"es-AR","start_url":"./","scope":"./","display":"standalone","orientation":"portrait","background_color":"#f3f4f6","theme_color":"#111827",
+"icons":[{"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
