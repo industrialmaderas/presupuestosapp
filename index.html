@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Presupuestos">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<title>Presupuestos | Industrial Maderas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#1f2937;font:16px Arial,sans-serif}header{background:#111827;color:#fff;padding:20px 16px}header h1{margin:0;font-size:24px}header p{margin:5px 0 0;color:#cbd5e1}.wrap{max-width:900px;margin:auto;padding:12px}.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px #00000010}h2{font-size:18px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}label{display:block;font-size:13px;font-weight:bold;margin-bottom:5px}input,select,button{width:100%;min-height:46px;border:1px solid #d1d5db;border-radius:9px;padding:10px;font-size:16px;background:#fff}button{cursor:pointer;font-weight:bold}.primary{background:#111827;color:#fff;border:0}.add{margin-top:10px}.row{display:grid;grid-template-columns:1.1fr 1fr 1fr .7fr auto;gap:8px;align-items:end;margin-bottom:9px}.row.pipe{grid-template-columns:1.2fr 1fr 1fr .8fr auto}.danger{width:auto;padding:10px 12px}.result{font-size:15px}.result div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}.total{font-size:21px;font-weight:bold;padding-top:12px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.muted{color:#6b7280;font-size:13px}@media(max-width:650px){.grid{grid-template-columns:1fr}.row,.row.pipe{grid-template-columns:1fr 1fr}.row .desc{grid-column:1/-1}.row button{grid-column:2}.actions{grid-template-columns:1fr}header h1{font-size:21px}}@media print{body{background:#fff}.app>*:not(#print){display:none!important}#print{display:block!important}.print-wrap{padding:25px}button{display:none!important}}#print{display:none}
+</style>
+</head>
+<body>
+<header><h1>Industrial Maderas</h1><p>Calculadora de presupuestos · PWA</p></header>
+<main class="wrap app">
+<section class="card">
+<h2>Datos del presupuesto</h2><div class="grid">
+<div><label>Cliente</label><input id="cliente"></div><div><label>Producto</label><input id="producto"></div><div><label>Cantidad</label><input id="cantidad" type="number" min="1" value="1"></div>
+</div></section>
+<section class="card"><h2>Madera</h2><div id="maderas"></div><button class="add" onclick="addWood()">+ Agregar pieza de madera</button>
+<div class="grid" style="margin-top:12px"><div><label>Precio de la placa</label><input id="woodPrice" type="number" value="38000"></div><div><label>Superficie placa (m²)</label><input id="woodArea" type="number" step=".01" value="3.6"></div><div><label>Pérdida madera (%)</label><input id="woodLoss" type="number" value="10"></div></div></section>
+<section class="card"><h2>Caño</h2><div id="canos"></div><button class="add" onclick="addPipe()">+ Agregar tipo de caño</button><div style="margin-top:8px" class="muted">Ingresá precio por barra, metros por barra y cantidad de barras.</div><div class="grid" style="margin-top:12px"><div><label>Pérdida caño (%)</label><input id="pipeLoss" type="number" value="10"></div></div></section>
+<section class="card"><h2>Costos adicionales</h2><div class="grid">
+<div><label>Mano de obra (%)</label><input id="labor" type="number" value="100"></div><div><label>Otros (%)</label><input id="other" type="number" value="50"></div><div><label>Envío (%)</label><input id="shipping" type="number" value="5"></div><div><label>Gastos extras</label><input id="extras" type="number" value="0"></div><div><label>Instalación</label><input id="install" type="number" value="0"></div>
+</div></section>
+<section class="card"><h2>Resultado</h2><div id="result" class="result"></div><div class="actions" style="margin-top:12px"><button class="primary" onclick="printBudget()">Imprimir / Guardar PDF</button><button onclick="location.reload()">Nuevo presupuesto</button></div></section>
+</main><section id="print"></section>
+<script>
+const $=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n||0);
+function addWood(){const d=document.createElement('div');d.className='row';d.innerHTML='<div><label>Ancho cm</label><input class="ww" type="number" step=".01"></div><div><label>Largo cm</label><input class="wl" type="number" step=".01"></div><div><label>Cantidad</label><input class="wq" type="number" min="1" value="1"></div><div class="desc"><label>Descripción</label><input class="wd"></div><button class="danger" onclick="this.parentElement.remove();calc()">✕</button>';d.querySelectorAll('input').forEach(x=>x.oninput=calc);$('maderas').appendChild(d)}
+function addPipe(){const d=document.createElement('div');d.className='row pipe';d.innerHTML='<div><label>Tipo</label><input class="pt"></div><div><label>$/barra</label><input class="pp" type="number"></div><div><label>m/barra</label><input class="pm" type="number" step=".01"></div><div><label>Barras</label><input class="pq" type="number" min="0"></div><button class="danger" onclick="this.parentElement.remove();calc()">✕</button>';d.querySelectorAll('input').forEach(x=>x.oninput=calc);$('canos').appendChild(d)}
+function calc(){let wood=0,pipe=0;document.querySelectorAll('#maderas .row').forEach(r=>wood+=(+r.querySelector('.ww').value||0)*(+r.querySelector('.wl').value||0)/10000*(+r.querySelector('.wq').value||0));wood=wood*(+$('woodPrice').value||0)/(+$('woodArea').value||1);let woodLoss=wood*(+$('woodLoss').value||0)/100;document.querySelectorAll('#canos .row').forEach(r=>pipe+=(+r.querySelector('.pp').value||0)*(+r.querySelector('.pq').value||0));let pipeLoss=pipe*(+$('pipeLoss').value||0)/100;let extras=(+$('extras').value||0)+(+$('install').value||0),base=wood+woodLoss+pipe+pipeLoss+extras,labor=base*(+$('labor').value||0)/100,other=base*(+$('other').value||0)/100,shipping=(base+labor+other)*(+$('shipping').value||0)/100,total=(base+labor+other+shipping)*(+$('cantidad').value||1);$('result').innerHTML='<div><span>Madera</span><b>'+money(wood)+'</b></div><div><span>Pérdida madera</span><b>'+money(woodLoss)+'</b></div><div><span>Caño</span><b>'+money(pipe)+'</b></div><div><span>Pérdida caño</span><b>'+money(pipeLoss)+'</b></div><div><span>Extras + instalación</span><b>'+money(extras)+'</b></div><div><span>Mano de obra</span><b>'+money(labor)+'</b></div><div><span>Otros</span><b>'+money(other)+'</b></div><div><span>Envío</span><b>'+money(shipping)+'</b></div><div class="total"><span>PRECIO FINAL</span><b>'+money(total)+'</b></div>';return {wood,woodLoss,pipe,pipeLoss,extras,labor,other,shipping,total}}
+function printBudget(){const r=calc();$('print').innerHTML='<div class="print-wrap"><h1>Industrial Maderas</h1><h2>Presupuesto</h2><p><b>Cliente:</b> '+($('cliente').value||'-')+'<br><b>Producto:</b> '+($('producto').value||'-')+'<br><b>Cantidad:</b> '+$('cantidad').value+'</p><hr><p>Madera: '+money(r.wood)+'<br>Pérdida madera: '+money(r.woodLoss)+'<br>Caño: '+money(r.pipe)+'<br>Pérdida caño: '+money(r.pipeLoss)+'<br>Extras + instalación: '+money(r.extras)+'<br>Mano de obra: '+money(r.labor)+'<br>Otros: '+money(r.other)+'<br>Envío: '+money(r.shipping)+'</p><h2>PRECIO FINAL: '+money(r.total)+'</h2></div>';window.print()}
+for(let i=0;i<5;i++)addWood();for(let i=0;i<5;i++)addPipe();document.querySelectorAll('input').forEach(x=>x.addEventListener('input',calc));calc();
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
